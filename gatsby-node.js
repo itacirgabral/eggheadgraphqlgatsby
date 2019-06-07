@@ -18,4 +18,17 @@ exports.createPages = ({ actions: { createPage } }) => {
       content: "<p>This is page content.</p><p>No GraphQL required!</p>",
     },
   })
+  const products = require("./data/products.json")
+  products.forEach(product => {
+    createPage({
+      path: `/product/${product.slug}/`,
+      component: require.resolve("./src/templates/product.js"),
+      context: {
+        title: product.title,
+        description: product.description,
+        image: product.image,
+        price: product.price,
+      },
+    })
+  })
 }
