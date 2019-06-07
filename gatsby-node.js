@@ -5,7 +5,7 @@
  */
 
 // You can delete this file if you're not using it
-exports.createPages = ({ actions: { createPage } }) => {
+exports.createPages = async ({ actions: { createPage }, graphql }) => {
   createPage({
     path: "/no-data/",
     component: require.resolve("./src/templates/no-data.js"),
@@ -18,16 +18,31 @@ exports.createPages = ({ actions: { createPage } }) => {
       content: "<p>This is page content.</p><p>No GraphQL required!</p>",
     },
   })
-  const products = require("./data/products.json")
-  products.forEach(product => {
+  const results = await graphql(`
+    {
+      allProductsJson {
+        edges {
+          node {
+            slug
+          }
+        }
+      }
+    }
+  `)
+
+  if (results.error) {
+    console.error("graphql query ERROR")
+    return 
+  }
+
+  results.data.allProductsJson.edges.forEach(edge => {
+    const product = edge.node
+
     createPage({
-      path: `/product/${product.slug}/`,
-      component: require.resolve("./src/templates/product.js"),
+      path: `/${product.slug}/`,
+      component: require.resolve("./src/templates/product-graphql.js"),
       context: {
-        title: product.title,
-        description: product.description,
-        image: product.image,
-        price: product.price,
+        slug: product.slug,
       },
     })
   })
